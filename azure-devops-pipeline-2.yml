@@ -21,14 +21,14 @@ steps:
     mavenPomFile: 'pom.xml'
     goals: 'clean package -DskipTests'
     
-# ================= DOCKER LOGIN =================
+# ================= ACR LOGIN =================
 
 # Login to ACR
-- task: Docker@2
-  displayName: "Login to ACR"
-  inputs:
-    command: login
-    containerRegistry: ACR-Connection
+#- task: Docker@2
+#  displayName: "Login to ACR"
+#  inputs:
+#    command: login
+#    containerRegistry: ACR-Connection
 
 # ================= FRONTEND =================
 # Build frontend image
@@ -44,18 +44,19 @@ steps:
       $(tag)
 
 # Push frontend to ACR
-- task: Docker@2
-  displayName: "Push frontend image to ACR"
-  inputs:
-    command: push
-    containerRegistry: ACR-Connection
-    repository: $(frontendRepo)
-    tags: |
-      $(tag)
+#- task: Docker@2
+#  displayName: "Push frontend image to ACR"
+#  inputs:
+#    command: push
+#    containerRegistry: ACR-Connection
+#    repository: $(frontendRepo)
+#    tags: |
+#      $(tag)
 
 # Tag frontend for Docker Hub
 - script: |
-    docker tag $(registry)/$(frontendRepo):$(tag) $(dockerHubUser)/$(frontendRepo):$(tag)
+#    docker tag $(registry)/$(frontendRepo):$(tag) $(dockerHubUser)/$(frontendRepo):$(tag)
+    docker tag $(dockerHubUser)/$(frontendRepo):$(tag)
   displayName: "Tag frontend for Docker Hub"
 
 # Push frontend to Docker Hub
