@@ -4,79 +4,104 @@ pool:
   name: 'Local-Linux'
 
 variables:
-  # Registries
-  acrRegistry: sacdockerzure.azurecr.io
-  dockerhubRegistry: smakavan
-
-  # Unique build tag
-  image_tag: $(Build.BuildId)
-
-  # Full image names
-  frontend_image_acr: $(acrRegistry)/frontend-app:$(image_tag)
-  frontend_image_dockerhub: $(dockerhubRegistry)/frontend-app:$(image_tag)
-  backend_image_acr: $(acrRegistry)/backend-app:$(image_tag)
-  backend_image_dockerhub: $(dockerhubRegistry)/backend-app:$(image_tag)
+  registry: sacdockerzure.azurecr.io
+  dockerHubUser: smakavan
+  frontendRepo: frontend-app
+  backendRepo: backend-app
+  tag: $(Build.BuildId)
 
 steps:
+# Checkout code
 - checkout: self
 
-# 1️⃣ Build Maven JARs
+# ================= MAVEN BUILD =================
 - task: Maven@3
-  displayName: 'Build frontend and backend JARs'
+  displayName: "Build frontend & backend JARs"
   inputs:
     mavenPomFile: 'pom.xml'
     goals: 'clean package -DskipTests'
+    
+# ================= DOCKER LOGIN =================
 
-# 2️⃣ Build frontend Docker image with tags for both registries
+# Login to ACR
 - task: Docker@2
-  displayName: 'Build frontend Docker image'
+  displayName: "Login to ACR"
   inputs:
-    command: 'build'
-    buildContext: 'frontend'
-    dockerfile: 'frontend/Dockerfile'
-    tags: '$(frontend_image_acr),$(frontend_image_dockerhub)'
+    command: login
+    containerRegistry: ACR-Connection
 
-# 3️⃣ Push frontend to ACR
+# ================= FRONTEND =================
+# Build frontend image
 - task: Docker@2
-  displayName: 'Push frontend to ACR'
+  displayName: "Build frontend image"
   inputs:
-    command: 'push'
-    containerRegistry: 'ACR-Connection'       # Azure service connection to ACR
-    repository: 'frontend-app'
-    tags: '$(image_tag)'
+    command: build
+    containerRegistry: ACR-Connection
+    repository: $(frontendRepo)
+    dockerfile: frontend/Dockerfile
+    buildContext: frontend
+    tags: |
+      $(tag)
 
-# 4️⃣ Push frontend to Docker Hub
+# Push frontend to ACR
 - task: Docker@2
-  displayName: 'Push frontend to Docker Hub'
+  displayName: "Push frontend image to ACR"
   inputs:
-    command: 'push'
-    containerRegistry: 'DockerHub-Connection' # Docker Hub service connection
-    repository: 'frontend-app'
-    tags: '$(image_tag)'
+    command: push
+    containerRegistry: ACR-Connection
+    repository: $(frontendRepo)
+    tags: |
+      $(tag)
 
-# 5️⃣ Build backend Docker image with tags for both registries
-- task: Docker@2
-  displayName: 'Build backend Docker image'
-  inputs:
-    command: 'build'
-    buildContext: 'backend'
-    dockerfile: 'backend/Dockerfile'
-    tags: '$(backend_image_acr),$(backend_image_dockerhub)'
+# Tag frontend for Docker Hub
+- script: |
+    docker tag $(registry)/$(frontendRepo):$(tag) $(dockerHubUser)/$(frontendRepo):$(tag)
+  displayName: "Tag frontend for Docker Hub"
 
-# 6️⃣ Push backend to ACR
+# Push frontend to Docker Hub
 - task: Docker@2
-  displayName: 'Push backend to ACR'
+  displayName: "Push frontend image to Docker Hub"
   inputs:
-    command: 'push'
-    containerRegistry: 'ACR-Connection'
-    repository: 'backend-app'
-    tags: '$(image_tag)'
+    command: push
+    containerRegistry: DockerHub-Connection
+    repository: $(dockerHubUser)/$(frontendRepo)
+    tags: |
+      $(tag)
 
-# 7️⃣ Push backend to Docker Hub
+# ================= BACKEND =================
+# Build backend image
 - task: Docker@2
-  displayName: 'Push backend to Docker Hub'
+  displayName: "Build backend image"
   inputs:
-    command: 'push'
-    containerRegistry: 'DockerHub-Connection'
-    repository: 'backend-app'
-    tags: '$(image_tag)'
+    command: build
+    containerRegistry: ACR-Connection
+    repository: $(backendRepo)
+    dockerfile: backend/Dockerfile
+    buildContext: backend
+    tags: |
+      $(tag)
+
+# Push backend to ACR
+- task: Docker@2
+  displayName: "Push backend image to ACR"
+  inputs:
+    command: push
+    containerRegistry: ACR-Connection
+    repository: $(backendRepo)
+    tags: |
+      $(tag)
+
+# Tag backend for Docker Hub
+- script: |
+    docker tag $(registry)/$(backendRepo):$(tag) $(dockerHubUser)/$(backendRepo):$(tag)
+  displayName: "Tag backend for Docker Hub"
+
+# Push backend to Docker Hub
+- task: Docker@2
+  displayName: "Push backend image to Docker Hub"
+  inputs:
+    command: push
+    containerRegistry: DockerHub-Connection
+    repository: $(dockerHubUser)/$(backendRepo)
+    tags: |
+      $(tag)
