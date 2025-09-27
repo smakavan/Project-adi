@@ -4,34 +4,39 @@ pool:
   name: 'Local-Linux'
 
 variables:
+  # Registries
   acrRegistry: sacdockerzure.azurecr.io
   dockerhubRegistry: smakavan
+
+  # Unique build tag
   image_tag: $(Build.BuildId)
-  frontend_image: $(acrRegistry)/frontend-app:$(image_tag)
-  backend_image: $(acrRegistry)/backend-app:$(image_tag)
+
+  # Full image names
+  frontend_image_acr: $(acrRegistry)/frontend-app:$(image_tag)
+  frontend_image_dockerhub: $(dockerhubRegistry)/frontend-app:$(image_tag)
+  backend_image_acr: $(acrRegistry)/backend-app:$(image_tag)
+  backend_image_dockerhub: $(dockerhubRegistry)/backend-app:$(image_tag)
 
 steps:
-
-# 1️⃣ Checkout repo
 - checkout: self
 
-# 2️⃣ Build Maven JARs (frontend + backend)
+# 1️⃣ Build Maven JARs
 - task: Maven@3
   displayName: 'Build frontend and backend JARs'
   inputs:
     mavenPomFile: 'pom.xml'
     goals: 'clean package -DskipTests'
-    
-# 3️⃣ Build frontend Docker image
+
+# 2️⃣ Build frontend Docker image with tags for both registries
 - task: Docker@2
   displayName: 'Build frontend Docker image'
   inputs:
     command: 'build'
     buildContext: 'frontend'
     dockerfile: 'frontend/Dockerfile'
-    tags: '$(frontend_image)'
+    tags: '$(frontend_image_acr),$(frontend_image_dockerhub)'
 
-# 4️⃣ Push frontend to ACR
+# 3️⃣ Push frontend to ACR
 - task: Docker@2
   displayName: 'Push frontend to ACR'
   inputs:
@@ -40,7 +45,7 @@ steps:
     repository: 'frontend-app'
     tags: '$(image_tag)'
 
-# 5️⃣ Push frontend to Docker Hub
+# 4️⃣ Push frontend to Docker Hub
 - task: Docker@2
   displayName: 'Push frontend to Docker Hub'
   inputs:
@@ -49,16 +54,16 @@ steps:
     repository: 'frontend-app'
     tags: '$(image_tag)'
 
-# 6️⃣ Build backend Docker image
+# 5️⃣ Build backend Docker image with tags for both registries
 - task: Docker@2
   displayName: 'Build backend Docker image'
   inputs:
     command: 'build'
     buildContext: 'backend'
     dockerfile: 'backend/Dockerfile'
-    tags: '$(backend_image)'
+    tags: '$(backend_image_acr),$(backend_image_dockerhub)'
 
-# 7️⃣ Push backend to ACR
+# 6️⃣ Push backend to ACR
 - task: Docker@2
   displayName: 'Push backend to ACR'
   inputs:
@@ -67,7 +72,7 @@ steps:
     repository: 'backend-app'
     tags: '$(image_tag)'
 
-# 8️⃣ Push backend to Docker Hub
+# 7️⃣ Push backend to Docker Hub
 - task: Docker@2
   displayName: 'Push backend to Docker Hub'
   inputs:
