@@ -76,10 +76,11 @@ steps:
   displayName: "Build frontend image"
   inputs:
     command: build
+    containerRegistry: DockerHub-Connection
     dockerfile: frontend/Dockerfile
     buildContext: frontend
     tags: |
-      $(frontendRepo):$(tag)
+      $(tag)
 
 # Tag frontend image for Docker Hub
 - script: |
