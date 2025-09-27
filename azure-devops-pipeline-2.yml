@@ -32,16 +32,16 @@ steps:
 
 # ================= FRONTEND =================
 # Build frontend image
-- task: Docker@2
-  displayName: "Build frontend image"
-  inputs:
-    command: build
-    containerRegistry: ACR-Connection
-    repository: $(frontendRepo)
-    dockerfile: frontend/Dockerfile
-    buildContext: frontend
-    tags: |
-      $(tag)
+#- task: Docker@2
+#  displayName: "Build frontend image"
+#  inputs:
+#    command: build
+#    containerRegistry: ACR-Connection
+#    repository: $(frontendRepo)
+#    dockerfile: frontend/Dockerfile
+#    buildContext: frontend
+#    tags: |
+#      $(tag)
 
 # Push frontend to ACR
 #- task: Docker@2
@@ -54,12 +54,39 @@ steps:
 #      $(tag)
 
 # Tag frontend for Docker Hub
-- script: |
-    docker tag $(dockerHubUser)/$(frontendRepo):$(tag)
+#- script: |
+#    docker tag $(dockerHubUser)/$(frontendRepo):$(tag)
 #    docker tag $(registry)/$(frontendRepo):$(tag) $(dockerHubUser)/$(frontendRepo):$(tag)
-  displayName: "Tag frontend for Docker Hub"
+#  displayName: "Tag frontend for Docker Hub"
 
 # Push frontend to Docker Hub
+#- task: Docker@2
+#  displayName: "Push frontend image to Docker Hub"
+#  inputs:
+#    command: push
+#    containerRegistry: DockerHub-Connection
+#    repository: $(dockerHubUser)/$(frontendRepo)
+#    tags: |
+#      $(tag)
+
+
+# ================= FRONTEND =================
+# Build frontend image
+- task: Docker@2
+  displayName: "Build frontend image"
+  inputs:
+    command: build
+    dockerfile: frontend/Dockerfile
+    buildContext: frontend
+    tags: |
+      $(frontendRepo):$(tag)
+
+# Tag frontend image for Docker Hub
+- script: |
+    docker tag $(frontendRepo):$(tag) $(dockerHubUser)/$(frontendRepo):$(tag)
+  displayName: "Tag frontend for Docker Hub"
+
+# Push frontend image to Docker Hub
 - task: Docker@2
   displayName: "Push frontend image to Docker Hub"
   inputs:
@@ -68,6 +95,7 @@ steps:
     repository: $(dockerHubUser)/$(frontendRepo)
     tags: |
       $(tag)
+
 
 # ================= BACKEND =================
 # Build backend image
