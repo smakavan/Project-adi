@@ -18,7 +18,6 @@ steps:
   inputs:
     mavenPomFile: 'pom.xml'
     goals: 'clean package -DskipTests'
-    options: '-B'  # Batch mode for CI logs
 
 # Build frontend Docker image
 - task: Docker@2
@@ -31,7 +30,7 @@ steps:
       -f- <<EOF
       FROM eclipse-temurin:8-jre
       WORKDIR /app
-      COPY target/*.jar app.jar
+      COPY target/frontend-1.0-RELEASE.jar app.jar
       EXPOSE 8080
       ENTRYPOINT ["java","-jar","app.jar"]
       EOF
@@ -66,7 +65,7 @@ steps:
       -f- <<EOF
       FROM eclipse-temurin:8-jre
       WORKDIR /app
-      COPY target/*.jar app.jar
+      COPY target/backend-1.0-RELEASE.jar app.jar
       EXPOSE 8081
       ENTRYPOINT ["java","-jar","app.jar"]
       EOF
