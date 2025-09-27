@@ -32,16 +32,16 @@ steps:
 
 # ================= FRONTEND =================
 # Build frontend image
-#- task: Docker@2
-#  displayName: "Build frontend image"
-#  inputs:
-#    command: build
+- task: Docker@2
+  displayName: "Build frontend image"
+  inputs:
+    command: build
 #    containerRegistry: ACR-Connection
-#    repository: $(frontendRepo)
-#    dockerfile: frontend/Dockerfile
-#    buildContext: frontend
-#    tags: |
-#      $(tag)
+    repository: $(frontendRepo)
+    dockerfile: frontend/Dockerfile
+    buildContext: frontend
+    tags: |
+      $(tag)
 
 # Push frontend to ACR
 #- task: Docker@2
@@ -70,68 +70,40 @@ steps:
 #      $(tag)
 
 
-# ================= FRONTEND =================
-# Build frontend image
-- task: Docker@2
-  displayName: "Build frontend image"
-  inputs:
-    command: build
-    repository: $(frontendRepo)
-    dockerfile: frontend/Dockerfile
-    buildContext: frontend
-    tags: |
-      $(tag)
-
-# Tag frontend image for Docker Hub
-- script: |
-    docker tag $(frontendRepo):$(tag) $(dockerHubUser)/$(frontendRepo):$(tag)
-  displayName: "Tag frontend for Docker Hub"
-
-# Push frontend image to Docker Hub
-- task: Docker@2
-  displayName: "Push frontend image to Docker Hub"
-  inputs:
-    command: push
-    containerRegistry: DockerHub-Connection
-    repository: $(dockerHubUser)/$(frontendRepo)
-    tags: |
-      $(tag)
-
-
 # ================= BACKEND =================
 # Build backend image
 - task: Docker@2
   displayName: "Build backend image"
   inputs:
     command: build
-    containerRegistry: ACR-Connection
+#    containerRegistry: ACR-Connection
     repository: $(backendRepo)
     dockerfile: backend/Dockerfile
     buildContext: backend
     tags: |
       $(tag)
 
-# Push backend to ACR
-- task: Docker@2
-  displayName: "Push backend image to ACR"
-  inputs:
-    command: push
-    containerRegistry: ACR-Connection
-    repository: $(backendRepo)
-    tags: |
-      $(tag)
+# Push backend to ACR (Pushing to Registory is taking too long time so used CLI from local)
+#- task: Docker@2
+#  displayName: "Push backend image to ACR"
+#  inputs:
+#    command: push
+#    containerRegistry: ACR-Connection
+#    repository: $(backendRepo)
+#    tags: |
+#      $(tag)
 
 # Tag backend for Docker Hub
-- script: |
-    docker tag $(registry)/$(backendRepo):$(tag) $(dockerHubUser)/$(backendRepo):$(tag)
-  displayName: "Tag backend for Docker Hub"
+#- script: |
+#    docker tag $(registry)/$(backendRepo):$(tag) $(dockerHubUser)/$(backendRepo):$(tag)
+#  displayName: "Tag backend for Docker Hub"
 
-# Push backend to Docker Hub
-- task: Docker@2
-  displayName: "Push backend image to Docker Hub"
-  inputs:
-    command: push
-    containerRegistry: DockerHub-Connection
-    repository: $(dockerHubUser)/$(backendRepo)
-    tags: |
-      $(tag)
+# Push backend to Docker Hub (Pushing to Registory is taking too long time so used CLI from local)
+#- task: Docker@2
+#  displayName: "Push backend image to Docker Hub"
+#  inputs:
+#    command: push
+#    containerRegistry: DockerHub-Connection
+#    repository: $(dockerHubUser)/$(backendRepo)
+#    tags: |
+#      $(tag)
