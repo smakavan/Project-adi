@@ -76,7 +76,7 @@ steps:
   displayName: "Build frontend image"
   inputs:
     command: build
-    containerRegistry: DockerHub-Connection
+    repository: $(frontendRepo)
     dockerfile: frontend/Dockerfile
     buildContext: frontend
     tags: |
