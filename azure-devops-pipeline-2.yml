@@ -55,8 +55,8 @@ steps:
 
 # Tag frontend for Docker Hub
 - script: |
-#    docker tag $(registry)/$(frontendRepo):$(tag) $(dockerHubUser)/$(frontendRepo):$(tag)
     docker tag $(dockerHubUser)/$(frontendRepo):$(tag)
+#    docker tag $(registry)/$(frontendRepo):$(tag) $(dockerHubUser)/$(frontendRepo):$(tag)
   displayName: "Tag frontend for Docker Hub"
 
 # Push frontend to Docker Hub
