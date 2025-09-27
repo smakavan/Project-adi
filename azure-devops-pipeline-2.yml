@@ -4,15 +4,15 @@ pool:
   name: 'Local-Linux'
 
 variables:
-  buildId: $(Build.BuildId)
-  frontend_image: frontend-app:$(buildId)
-  backend_image: backend-app:$(buildId)
+  image_tag: $(Build.BuildId)
+  frontend_image_name: frontend-app
+  backend_image_name: backend-app
 
 steps:
 # Checkout source code
 - checkout: self
 
-# Build Maven JARs
+# Build frontend and backend JARs
 - task: Maven@3
   displayName: 'Build frontend and backend JARs'
   inputs:
@@ -25,34 +25,26 @@ steps:
   inputs:
     command: 'build'
     buildContext: 'frontend'
-    dockerfile: ''  # Inline Dockerfile
-    arguments: |
-      -f- <<EOF
-      FROM eclipse-temurin:8-jre
-      WORKDIR /app
-      COPY target/frontend-1.0-RELEASE.jar app.jar
-      EXPOSE 8080
-      ENTRYPOINT ["java","-jar","app.jar"]
-      EOF
-    tags: '$(frontend_image)'
+    dockerfile: 'frontend/Dockerfile'
+    tags: '$(frontend_image_name):$(image_tag)'
 
 # Push frontend to ACR
 - task: Docker@2
   displayName: 'Push frontend to ACR'
   inputs:
     command: 'push'
-    containerRegistry: 'ACR-Connection'  # Service connection
+    containerRegistry: 'ACR-Connection'       # Azure service connection
     repository: 'frontend-app'
-    tags: '$(buildId)'
+    tags: '$(image_tag)'
 
 # Push frontend to Docker Hub
 - task: Docker@2
   displayName: 'Push frontend to Docker Hub'
   inputs:
     command: 'push'
-    containerRegistry: 'DockerHub-Connection'  # Service connection
+    containerRegistry: 'DockerHub-Connection' # Docker Hub service connection
     repository: 'frontend-app'
-    tags: '$(buildId)'
+    tags: '$(image_tag)'
 
 # Build backend Docker image
 - task: Docker@2
@@ -60,16 +52,8 @@ steps:
   inputs:
     command: 'build'
     buildContext: 'backend'
-    dockerfile: ''
-    arguments: |
-      -f- <<EOF
-      FROM eclipse-temurin:8-jre
-      WORKDIR /app
-      COPY target/backend-1.0-RELEASE.jar app.jar
-      EXPOSE 8081
-      ENTRYPOINT ["java","-jar","app.jar"]
-      EOF
-    tags: '$(backend_image)'
+    dockerfile: 'backend/Dockerfile'
+    tags: '$(backend_image_name):$(image_tag)'
 
 # Push backend to ACR
 - task: Docker@2
@@ -78,7 +62,7 @@ steps:
     command: 'push'
     containerRegistry: 'ACR-Connection'
     repository: 'backend-app'
-    tags: '$(buildId)'
+    tags: '$(image_tag)'
 
 # Push backend to Docker Hub
 - task: Docker@2
@@ -87,4 +71,4 @@ steps:
     command: 'push'
     containerRegistry: 'DockerHub-Connection'
     repository: 'backend-app'
-    tags: '$(buildId)'
+    tags: '$(image_tag)'
