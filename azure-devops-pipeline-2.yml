@@ -6,8 +6,8 @@ pool:
 variables:
   registry: sacdockerzure.azurecr.io
   dockerHubUser: smakavan
-  frontendRepo: frontend-app
-  backendRepo: backend-app
+  frontendRepo: frontend-app-v1
+  backendRepo: backend-app-v1
   tag: $(Build.BuildId)
 
 steps:
